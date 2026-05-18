@@ -10,7 +10,7 @@ class ScreenerCondition(BaseModel):
 
 
 class ScreenerRequest(BaseModel):
-    conditions: list[ScreenerCondition]
+    conditions: list[ScreenerCondition] = []
     logic: str = "AND"
     sort_by: Optional[str] = None
     sort_order: str = "desc"

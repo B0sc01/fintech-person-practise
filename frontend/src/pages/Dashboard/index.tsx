@@ -133,6 +133,11 @@ export default function Dashboard() {
               title="Avg Close Price"
               value={ov.avg_close ? Number(ov.avg_close).toFixed(2) : 0}
               prefix={<DollarOutlined />}
+              suffix={ov.week_change_pct != null ? (
+                <span style={{ fontSize: 14, color: ov.week_change_pct >= 0 ? '#3f8600' : '#cf1322' }}>
+                  {ov.week_change_pct >= 0 ? '+' : ''}{ov.week_change_pct}%
+                </span>
+              ) : undefined}
             />
           </Card>
         </Col>
@@ -140,7 +145,7 @@ export default function Dashboard() {
           <Card>
             <Statistic
               title="Total Turnover (¥)"
-              value={ov.total_amount ? (Number(ov.total_amount) / 1e8).toFixed(2) + 'B' : 0}
+              value={ov.total_amount ? (Number(ov.total_amount) / 1e8).toFixed(2) + '亿' : 0}
               prefix={<RiseOutlined />}
             />
           </Card>

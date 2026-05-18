@@ -166,7 +166,9 @@ class AnalysisService:
                 all_rows.append((fc, r.ts_code, r.trade_date, r.normalized_value))
 
         if not all_rows:
-            return {"factors": factor_codes, "matrix": [[1.0] * len(factor_codes)] * len(factor_codes)}
+            n = len(factor_codes)
+            matrix = [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
+            return {"factors": factor_codes, "matrix": matrix}
 
         df = pd.DataFrame(all_rows, columns=["factor", "ts_code", "trade_date", "value"])
         pivot = df.pivot_table(
@@ -174,7 +176,9 @@ class AnalysisService:
         ).dropna()
 
         if pivot.empty:
-            return {"factors": factor_codes, "matrix": [[1.0] * len(factor_codes)] * len(factor_codes)}
+            n = len(factor_codes)
+            matrix = [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
+            return {"factors": factor_codes, "matrix": matrix}
 
         corr = pivot.corr()
         matrix = []

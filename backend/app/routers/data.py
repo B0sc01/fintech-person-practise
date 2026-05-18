@@ -82,12 +82,15 @@ def download_daily(req: DownloadRequest, db: Session = Depends(get_db)):
         _download_progress["total"] = total
 
     def run():
-        svc = DataService(db)
+        from app.database import SessionLocal
+        local_db = SessionLocal()
         try:
+            svc = DataService(local_db)
             svc.download_daily_batch(
                 req.start_date, req.end_date, req.stock_codes, progress_cb
             )
         finally:
+            local_db.close()
             _download_progress["in_progress"] = False
 
     thread = threading.Thread(target=run, daemon=True)

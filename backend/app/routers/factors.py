@@ -52,6 +52,20 @@ def factor_categories(db: Session = Depends(get_db)):
     return ApiResponse(data=cats)
 
 
+@router.get("/popular", response_model=ApiResponse)
+def popular_factors(db: Session = Depends(get_db)):
+    factors = (
+        db.query(FactorCatalog)
+        .filter(FactorCatalog.status == "active")
+        .order_by(FactorCatalog.popularity.desc())
+        .limit(10)
+        .all()
+    )
+    return ApiResponse(
+        data=[FactorCatalogOut.model_validate(f).model_dump() for f in factors]
+    )
+
+
 @router.get("/{factor_code}", response_model=ApiResponse)
 def factor_detail(factor_code: str, db: Session = Depends(get_db)):
     factor = (
@@ -81,20 +95,6 @@ def factor_detail(factor_code: str, db: Session = Depends(get_db)):
         for v in recent_vals
     ]
     return ApiResponse(data=detail)
-
-
-@router.get("/popular", response_model=ApiResponse)
-def popular_factors(db: Session = Depends(get_db)):
-    factors = (
-        db.query(FactorCatalog)
-        .filter(FactorCatalog.status == "active")
-        .order_by(FactorCatalog.popularity.desc())
-        .limit(10)
-        .all()
-    )
-    return ApiResponse(
-        data=[FactorCatalogOut.model_validate(f).model_dump() for f in factors]
-    )
 
 
 @router.post("/compute", response_model=ApiResponse)

@@ -12,13 +12,11 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 @router.get("/overview", response_model=ApiResponse)
 def dashboard_overview(db: Session = Depends(get_db)):
-    today = date.today()
-    week_ago = today - timedelta(days=7)
-
     total_stocks = db.query(func.count(StockBasic.id)).scalar()
     latest_date = db.query(func.max(StockDaily.trade_date)).scalar()
 
-    recent_data = []
+    recent_data = None
+    week_ago_data = None
     if latest_date:
         recent_data = (
             db.query(
@@ -29,12 +27,34 @@ def dashboard_overview(db: Session = Depends(get_db)):
             .first()
         )
 
+        # Find trading day ~5 trading days ago
+        prev_dates = (
+            db.query(StockDaily.trade_date)
+            .filter(StockDaily.trade_date < latest_date)
+            .distinct()
+            .order_by(StockDaily.trade_date.desc())
+            .limit(5)
+            .all()
+        )
+        if len(prev_dates) >= 5:
+            week_ago_date = prev_dates[-1][0]
+            week_ago_data = (
+                db.query(func.avg(StockDaily.close))
+                .filter(StockDaily.trade_date == week_ago_date)
+                .scalar()
+            )
+
+    avg_close = float(recent_data[0]) if recent_data and recent_data[0] else 0
+    prev_avg_close = float(week_ago_data) if week_ago_data else 0
+    week_change_pct = ((avg_close - prev_avg_close) / prev_avg_close * 100) if prev_avg_close > 0 else 0
+
     return ApiResponse(
         data={
             "total_stocks": total_stocks,
             "latest_trade_date": str(latest_date) if latest_date else None,
-            "avg_close": float(recent_data[0]) if recent_data and recent_data[0] else 0,
+            "avg_close": avg_close,
             "total_amount": float(recent_data[1]) if recent_data and recent_data[1] else 0,
+            "week_change_pct": round(week_change_pct, 2),
         }
     )
 
