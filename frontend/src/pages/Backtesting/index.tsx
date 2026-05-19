@@ -9,6 +9,7 @@ import ReactECharts from 'echarts-for-react';
 import dayjs from 'dayjs';
 import { factorsApi } from '../../api/factors';
 import { backtestApi } from '../../api/backtest';
+import { useTranslation } from '../../locales';
 import type { FactorCatalog, BacktestResult } from '../../types';
 
 const { RangePicker } = DatePicker;
@@ -21,6 +22,7 @@ export default function Backtesting() {
   ]);
   const [nQuantiles, setNQuantiles] = useState(5);
   const [btName, setBtName] = useState('');
+  const { t } = useTranslation();
 
   const { data: factorsResp } = useQuery({
     queryKey: ['factors-backtest'],
@@ -35,10 +37,10 @@ export default function Backtesting() {
       end_date: dateRange[1].format('YYYY-MM-DD'),
     }),
     onSuccess: (res: any) => {
-      message.success(`Computed ${res?.data?.rows_computed ?? 0} values`);
+      message.success(`${t.compute} ${res?.data?.rows_computed ?? 0} values`);
     },
     onError: (err: any) => {
-      const detail = err?.response?.data?.detail || err?.message || 'Unknown error';
+      const detail = err?.response?.data?.detail || err?.message || t.unknownError;
       message.error(typeof detail === 'string' ? detail : JSON.stringify(detail));
     },
   });
@@ -56,11 +58,11 @@ export default function Backtesting() {
     }),
     onSuccess: (res: any) => {
       const jobId = res?.data?.job_id;
-      message.info(`Backtest started, job ID: ${jobId}`);
+      message.info(t.backtestStarted.replace('{jobId}', String(jobId)));
       setCurrentJobId(jobId);
     },
     onError: (err: any) => {
-      const detail = err?.response?.data?.detail || err?.message || 'Unknown error';
+      const detail = err?.response?.data?.detail || err?.message || t.unknownError;
       message.error(typeof detail === 'string' ? detail : JSON.stringify(detail));
     },
   });
@@ -97,18 +99,18 @@ export default function Backtesting() {
     yAxis: [
       {
         type: 'value' as const,
-        name: 'Equity',
+        name: t.equity,
         axisLabel: { fontSize: 10 },
       },
       {
         type: 'value' as const,
-        name: 'Drawdown %',
+        name: t.drawdownPct,
         axisLabel: { fontSize: 10, formatter: '{value}%' },
       },
     ],
     series: [
       {
-        name: 'Equity Curve',
+        name: t.equityCurve,
         type: 'line',
         data: equityCurve.map((p: any) => p.value),
         smooth: true,
@@ -116,7 +118,7 @@ export default function Backtesting() {
         areaStyle: { opacity: 0.1 },
       },
       {
-        name: 'Drawdown',
+        name: t.drawdownPct,
         type: 'line',
         yAxisIndex: 1,
         data: equityCurve.map((p: any) => ((p.drawdown || 0) * 100).toFixed(2)),
@@ -129,29 +131,29 @@ export default function Backtesting() {
 
   const historyColumns = [
     { title: 'ID', dataIndex: 'id', width: 50 },
-    { title: 'Name', dataIndex: 'name' },
+    { title: t.name, dataIndex: 'name' },
     {
-      title: 'Status', dataIndex: 'status',
+      title: t.status, dataIndex: 'status',
       render: (v: string) => (
         <span style={{ color: v === 'completed' ? '#52c41a' : v === 'failed' ? '#ff4d4f' : '#faad14' }}>
           {v}
         </span>
       ),
     },
-    { title: 'Total Return', dataIndex: 'total_return', render: (v?: number) => v ? `${(v * 100).toFixed(2)}%` : '-' },
-    { title: 'Annual Return', dataIndex: 'annual_return', render: (v?: number) => v ? `${(v * 100).toFixed(2)}%` : '-' },
-    { title: 'Sharpe', dataIndex: 'sharpe_ratio', render: (v?: number) => v?.toFixed(2) || '-' },
-    { title: 'Max DD', dataIndex: 'max_drawdown', render: (v?: number) => v ? `${(v * 100).toFixed(2)}%` : '-' },
+    { title: t.totalReturn, dataIndex: 'total_return', render: (v?: number) => v ? `${(v * 100).toFixed(2)}%` : '-' },
+    { title: t.annualReturn, dataIndex: 'annual_return', render: (v?: number) => v ? `${(v * 100).toFixed(2)}%` : '-' },
+    { title: t.sharpe, dataIndex: 'sharpe_ratio', render: (v?: number) => v?.toFixed(2) || '-' },
+    { title: t.maxDD, dataIndex: 'max_drawdown', render: (v?: number) => v ? `${(v * 100).toFixed(2)}%` : '-' },
   ];
 
   return (
     <div>
-      <Card title="Strategy Configuration" style={{ marginBottom: 16 }}>
+      <Card title={t.strategyConfiguration} style={{ marginBottom: 16 }}>
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} sm={12} lg={6}>
-            <Typography.Text strong>Factor</Typography.Text>
+            <Typography.Text strong>{t.factor}</Typography.Text>
             <Select
-              placeholder="Select factor"
+              placeholder={t.selectFactor}
               style={{ width: '100%', marginTop: 4 }}
               value={factorCode}
               onChange={setFactorCode}
@@ -163,7 +165,7 @@ export default function Backtesting() {
             />
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <Typography.Text strong>Backtest Period</Typography.Text>
+            <Typography.Text strong>{t.backtestPeriod}</Typography.Text>
             <br />
             <RangePicker
               value={dateRange}
@@ -172,7 +174,7 @@ export default function Backtesting() {
             />
           </Col>
           <Col xs={12} sm={8} lg={3}>
-            <Typography.Text strong>Quantiles</Typography.Text>
+            <Typography.Text strong>{t.quantiles}</Typography.Text>
             <InputNumber
               min={2} max={10}
               value={nQuantiles}
@@ -181,9 +183,9 @@ export default function Backtesting() {
             />
           </Col>
           <Col xs={12} sm={8} lg={4}>
-            <Typography.Text strong>Strategy Name</Typography.Text>
+            <Typography.Text strong>{t.strategyName}</Typography.Text>
             <Input
-              placeholder="My Strategy"
+              placeholder={t.myStrategy}
               value={btName}
               onChange={(e) => setBtName(e.target.value)}
               style={{ marginTop: 4 }}
@@ -197,7 +199,7 @@ export default function Backtesting() {
                 onClick={() => computeMut.mutate()}
                 disabled={!factorCode}
               >
-                Compute
+                {t.compute}
               </Button>
               <Button
                 type="primary"
@@ -206,7 +208,7 @@ export default function Backtesting() {
                 onClick={() => runMut.mutate()}
                 disabled={!factorCode}
               >
-                Run Backtest
+                {t.runBacktest}
               </Button>
             </Space>
           </Col>
@@ -217,26 +219,26 @@ export default function Backtesting() {
         <>
           <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
             <Col xs={12} sm={8} lg={4}>
-              <Card><Statistic title="Total Return" value={result.total_return ? `${(result.total_return * 100).toFixed(2)}%` : '-'} /></Card>
+              <Card><Statistic title={t.totalReturn} value={result.total_return ? `${(result.total_return * 100).toFixed(2)}%` : '-'} /></Card>
             </Col>
             <Col xs={12} sm={8} lg={4}>
-              <Card><Statistic title="Annual Return" value={result.annual_return ? `${(result.annual_return * 100).toFixed(2)}%` : '-'} /></Card>
+              <Card><Statistic title={t.annualReturn} value={result.annual_return ? `${(result.annual_return * 100).toFixed(2)}%` : '-'} /></Card>
             </Col>
             <Col xs={12} sm={8} lg={4}>
-              <Card><Statistic title="Volatility" value={result.volatility ? `${(result.volatility * 100).toFixed(2)}%` : '-'} /></Card>
+              <Card><Statistic title={t.volatility} value={result.volatility ? `${(result.volatility * 100).toFixed(2)}%` : '-'} /></Card>
             </Col>
             <Col xs={12} sm={8} lg={4}>
-              <Card><Statistic title="Sharpe Ratio" value={result.sharpe_ratio?.toFixed(2) || '-'} /></Card>
+              <Card><Statistic title={t.sharpeRatio} value={result.sharpe_ratio?.toFixed(2) || '-'} /></Card>
             </Col>
             <Col xs={12} sm={8} lg={4}>
-              <Card><Statistic title="Max Drawdown" value={result.max_drawdown ? `${(result.max_drawdown * 100).toFixed(2)}%` : '-'} /></Card>
+              <Card><Statistic title={t.maxDrawdown} value={result.max_drawdown ? `${(result.max_drawdown * 100).toFixed(2)}%` : '-'} /></Card>
             </Col>
             <Col xs={12} sm={8} lg={4}>
-              <Card><Statistic title="Win Rate" value={result.win_rate ? `${(result.win_rate * 100).toFixed(1)}%` : '-'} /></Card>
+              <Card><Statistic title={t.winRate} value={result.win_rate ? `${(result.win_rate * 100).toFixed(1)}%` : '-'} /></Card>
             </Col>
           </Row>
 
-          <Card title="Equity Curve" style={{ marginBottom: 16 }}>
+          <Card title={t.equityCurve} style={{ marginBottom: 16 }}>
             {equityCurve.length > 0 ? (
               <ReactECharts option={equityOption} style={{ height: 400 }} />
             ) : (
@@ -246,7 +248,7 @@ export default function Backtesting() {
         </>
       )}
 
-      <Card title="Backtest History">
+      <Card title={t.backtestHistory}>
         <Table
           dataSource={btJobs}
           columns={historyColumns}

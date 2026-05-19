@@ -10,8 +10,11 @@ import {
 import ReactECharts from 'echarts-for-react';
 import { dashboardApi } from '../../api/dashboard';
 import { factorsApi } from '../../api/factors';
+import { useTranslation } from '../../locales';
 
 export default function Dashboard() {
+  const { t } = useTranslation();
+
   const { data: overview, isLoading: loadingOverview, isError, refetch } = useQuery({
     queryKey: ['dashboard-overview'],
     queryFn: dashboardApi.overview,
@@ -95,11 +98,11 @@ export default function Dashboard() {
     return (
       <Result
         status="warning"
-        title="后端服务未连接"
-        subTitle="Dashboard 数据需要后端 API 支持，请确认后端已启动"
+        title={t.backendNotConnected}
+        subTitle={t.backendNotConnectedHint}
         extra={
           <Button type="primary" icon={<ReloadOutlined />} onClick={() => refetch()}>
-            重试
+            {t.retry}
           </Button>
         }
       />
@@ -112,7 +115,7 @@ export default function Dashboard() {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Total Stocks"
+              title={t.totalStocks}
               value={ov.total_stocks || 0}
               prefix={<StockOutlined />}
             />
@@ -121,7 +124,7 @@ export default function Dashboard() {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Latest Trade Date"
+              title={t.latestTradeDate}
               value={ov.latest_trade_date || '-'}
               prefix={<CalendarOutlined />}
             />
@@ -130,7 +133,7 @@ export default function Dashboard() {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Avg Close Price"
+              title={t.avgClosePrice}
               value={ov.avg_close ? Number(ov.avg_close).toFixed(2) : 0}
               prefix={<DollarOutlined />}
               suffix={ov.week_change_pct != null ? (
@@ -144,8 +147,8 @@ export default function Dashboard() {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Total Turnover (¥)"
-              value={ov.total_amount ? (Number(ov.total_amount) / 1e8).toFixed(2) + '亿' : 0}
+              title={t.totalTurnover}
+              value={ov.total_amount ? (Number(ov.total_amount) / 1e8).toFixed(2) + t.yi : 0}
               prefix={<RiseOutlined />}
             />
           </Card>
@@ -154,24 +157,24 @@ export default function Dashboard() {
 
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} lg={14}>
-          <Card title="Market Trend (60-Day Avg Close)">
+          <Card title={t.marketTrend}>
             {indexData.length > 0 ? (
               <ReactECharts option={lineOption} style={{ height: 360 }} />
             ) : (
               <Typography.Text type="secondary">
-                Download market data first in Data Center
+                {t.downloadMarketData}
               </Typography.Text>
             )}
           </Card>
         </Col>
         <Col xs={24} lg={10}>
-          <Card title="Factor Catalog">
+          <Card title={t.factorCatalog}>
             {factorData.length > 0 ? (
               <ReactECharts option={barOption} style={{ height: 360 }} />
             ) : (
               <div style={{ padding: 24, textAlign: 'center' }}>
                 <Typography.Text type="secondary">
-                  70 factors available in 7 categories. Visit Factor Library to browse and compute them.
+                  {t.factorCatalogHint}
                 </Typography.Text>
               </div>
             )}

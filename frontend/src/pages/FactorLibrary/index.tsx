@@ -6,6 +6,7 @@ import {
 } from 'antd';
 import { SearchOutlined, RiseOutlined, FallOutlined, ReloadOutlined } from '@ant-design/icons';
 import { factorsApi } from '../../api/factors';
+import { useTranslation } from '../../locales';
 import type { FactorCatalog } from '../../types';
 
 const { Meta } = Card;
@@ -25,6 +26,7 @@ export default function FactorLibrary() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string | undefined>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const { data: factorsResp, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['factors', category],
@@ -55,21 +57,21 @@ export default function FactorLibrary() {
     return (
       <Result
         status="error"
-        title="无法连接后端服务"
+        title={t.cannotConnectBackend}
         subTitle={
           <div>
-            <p>请确认后端服务已启动：</p>
+            <p>{t.startBackendHint}</p>
             <code style={{ background: '#f5f5f5', padding: '4px 8px', borderRadius: 4 }}>
               cd backend && uvicorn app.main:app --reload --port 8000
             </code>
             <p style={{ marginTop: 8, color: '#999', fontSize: 12 }}>
-              错误详情: {(error as any)?.message || 'Network Error'}
+              {t.errorDetail} {(error as any)?.message || 'Network Error'}
             </p>
           </div>
         }
         extra={
           <Button type="primary" icon={<ReloadOutlined />} onClick={() => refetch()}>
-            重新连接
+            {t.reconnect}
           </Button>
         }
       />
@@ -80,7 +82,7 @@ export default function FactorLibrary() {
     <Spin spinning={isLoading}>
       <Space style={{ marginBottom: 16, width: '100%' }} size="middle">
         <Input
-          placeholder="Search factors..."
+          placeholder={t.searchFactors}
           prefix={<SearchOutlined />}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -88,7 +90,7 @@ export default function FactorLibrary() {
           allowClear
         />
         <Select
-          placeholder="All Categories"
+          placeholder={t.allCategories}
           allowClear
           style={{ width: 180 }}
           value={category}
@@ -101,7 +103,7 @@ export default function FactorLibrary() {
       </Space>
 
       {!isLoading && factors.length === 0 ? (
-        <Empty description="Factor catalog is empty. The backend will seed factors on startup — ensure the backend has started at least once." />
+        <Empty description={t.factorCatalogEmpty} />
       ) : (
         <Row gutter={[16, 16]}>
           {filtered.map((f) => (

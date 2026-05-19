@@ -7,6 +7,7 @@ import { SearchOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs';
 import { factorsApi } from '../../api/factors';
 import { screenerApi } from '../../api/backtest';
+import { useTranslation } from '../../locales';
 import type { FactorCatalog, ScreenerCondition } from '../../types';
 
 const OPERATORS = [
@@ -25,6 +26,7 @@ export default function StockScreener() {
     dayjs().subtract(60, 'day'),
     dayjs(),
   ]);
+  const { t } = useTranslation();
 
   const { data: factorsResp } = useQuery({
     queryKey: ['factors-all-screen'],
@@ -42,7 +44,7 @@ export default function StockScreener() {
       page_size: 100,
     }),
     onError: (err: any) => {
-      const detail = err?.response?.data?.detail || err?.message || 'Unknown error';
+      const detail = err?.response?.data?.detail || err?.message || t.unknownError;
       message.error(typeof detail === 'string' ? detail : JSON.stringify(detail));
     },
   });
@@ -66,8 +68,8 @@ export default function StockScreener() {
   };
 
   const columns = [
-    { title: 'Stock Code', dataIndex: 'ts_code', width: 120 },
-    { title: 'Name', dataIndex: 'stock_name', width: 120 },
+    { title: t.stock, dataIndex: 'ts_code', width: 120 },
+    { title: t.name, dataIndex: 'stock_name', width: 120 },
     ...conditions.filter(c => c.factor_code).map((c) => ({
       title: c.factor_code,
       dataIndex: c.factor_code,
@@ -80,12 +82,12 @@ export default function StockScreener() {
 
   return (
     <div>
-      <Card title="Stock Screener" style={{ marginBottom: 16 }}>
+      <Card title={t.stockScreener} style={{ marginBottom: 16 }}>
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
           <Space>
             <Radio.Group value={logic} onChange={(e) => setLogic(e.target.value)}>
-              <Radio.Button value="AND">AND (All conditions)</Radio.Button>
-              <Radio.Button value="OR">OR (Any condition)</Radio.Button>
+              <Radio.Button value="AND">{t.andAllConditions}</Radio.Button>
+              <Radio.Button value="OR">{t.orAnyCondition}</Radio.Button>
             </Radio.Group>
             <DatePicker.RangePicker
               value={dateRange}
@@ -93,7 +95,7 @@ export default function StockScreener() {
               size="small"
             />
             <Typography.Text type="secondary">
-              Compute factor values first on Factor Detail page
+              {t.computeFactorValuesFirst}
             </Typography.Text>
           </Space>
 
@@ -101,7 +103,7 @@ export default function StockScreener() {
             <Row gutter={8} key={i} align="middle">
               <Col flex="auto">
                 <Select
-                  placeholder="Select factor"
+                  placeholder={t.selectFactor}
                   style={{ width: '100%' }}
                   value={cond.factor_code || undefined}
                   onChange={(v) => updateCondition(i, 'factor_code', v)}
@@ -144,7 +146,7 @@ export default function StockScreener() {
 
           <Space>
             <Button icon={<PlusOutlined />} onClick={addCondition}>
-              Add Condition
+              {t.addCondition}
             </Button>
             <Button
               type="primary"
@@ -153,23 +155,23 @@ export default function StockScreener() {
               onClick={() => screenMut.mutate()}
               disabled={!conditions.some((c) => c.factor_code)}
             >
-              Search
+              {t.search}
             </Button>
           </Space>
         </Space>
       </Card>
 
-      <Card title={`Results (${total})`}>
+      <Card title={`${t.results} (${total})`}>
         {results.length > 0 ? (
           <Table
             dataSource={results}
             columns={columns}
             rowKey="ts_code"
             size="small"
-            pagination={{ pageSize: 50, showTotal: (t) => `${t} stocks` }}
+            pagination={{ pageSize: 50, showTotal: (total) => t.stocks.replace('{count}', String(total)) }}
           />
         ) : (
-          <Empty description="Add conditions and click Search" />
+          <Empty description={t.addConditionsAndSearch} />
         )}
       </Card>
     </div>

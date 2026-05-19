@@ -6,6 +6,7 @@ import ReactECharts from 'echarts-for-react';
 import dayjs from 'dayjs';
 import { analysisApi } from '../../api/analysis';
 import { factorsApi } from '../../api/factors';
+import { useTranslation } from '../../locales';
 import type { FactorCatalog } from '../../types';
 
 const { RangePicker } = DatePicker;
@@ -16,6 +17,7 @@ export default function FactorAnalysis() {
     dayjs().subtract(60, 'day'),
     dayjs(),
   ]);
+  const { t } = useTranslation();
 
   const { data: factorsResp } = useQuery({
     queryKey: ['factors-all'],
@@ -58,12 +60,12 @@ export default function FactorAnalysis() {
       }
     },
     onSuccess: () => {
-      message.success('Factors computed, running analysis...');
+      message.success(t.factorsComputedRunningAnalysis);
       refetchIC();
       refetchCorr();
     },
     onError: (err: any) => {
-      const detail = err?.response?.data?.detail || err?.message || 'Unknown error';
+      const detail = err?.response?.data?.detail || err?.message || t.unknownError;
       message.error(typeof detail === 'string' ? detail : JSON.stringify(detail));
     },
   });
@@ -126,7 +128,7 @@ export default function FactorAnalysis() {
               <Col flex="auto">
                 <Select
                   mode="multiple"
-                  placeholder="Select factors to analyze"
+                  placeholder={t.selectFactorsToAnalyze}
                   style={{ width: '100%' }}
                   value={selectedFactors}
                   onChange={setSelectedFactors}
@@ -150,7 +152,7 @@ export default function FactorAnalysis() {
                   disabled={selectedFactors.length === 0}
                   loading={computeMut.isPending}
                 >
-                  Compute
+                  {t.compute}
                 </Button>
               </Col>
               <Col>
@@ -158,7 +160,7 @@ export default function FactorAnalysis() {
                   onClick={() => { refetchIC(); refetchCorr(); }}
                   disabled={selectedFactors.length === 0}
                 >
-                  Analyze
+                  {t.analyze}
                 </Button>
               </Col>
             </Row>
@@ -167,31 +169,31 @@ export default function FactorAnalysis() {
       </Row>
 
       {selectedFactors.length === 0 ? (
-        <Empty style={{ marginTop: 48 }} description="Select factors above, click Compute, then Analyze" />
+        <Empty style={{ marginTop: 48 }} description={t.selectFactorsHint} />
       ) : (
         <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
           <Col xs={24}>
-            <Card title="Factor IC Time Series (Pearson)">
+            <Card title={t.factorICTimeSeries}>
               {icResults.length > 0 ? (
                 <ReactECharts option={icOption} style={{ height: 400 }} />
               ) : (
-                <Typography.Text type="secondary">Compute factors first, then analyze here</Typography.Text>
+                <Typography.Text type="secondary">{t.computeFactorsFirst}</Typography.Text>
               )}
             </Card>
           </Col>
 
           {icResults.length > 0 && (
             <Col xs={24}>
-              <Card title="IC Summary Statistics">
+              <Card title={t.icSummaryStatistics}>
                 <Row gutter={[16, 16]}>
                   {icResults.map((r: any) => (
                     <Col xs={24} sm={12} md={8} lg={6} key={r.factor_code}>
                       <Card size="small" title={r.factor_code}>
-                        <div>IC Mean: <strong>{r.ic_mean?.toFixed(4)}</strong></div>
-                        <div>IC Std: <strong>{r.ic_std?.toFixed(4)}</strong></div>
-                        <div>IR: <strong>{r.ir?.toFixed(4)}</strong></div>
-                        <div>IC &gt; 0 Ratio: <strong>{((r.ic_positive_ratio ?? 0) * 100).toFixed(1)}%</strong></div>
-                        <div>t-stat: <strong>{r.t_stat?.toFixed(2)}</strong></div>
+                        <div>{t.icMean}: <strong>{r.ic_mean?.toFixed(4)}</strong></div>
+                        <div>{t.icStd}: <strong>{r.ic_std?.toFixed(4)}</strong></div>
+                        <div>{t.ir}: <strong>{r.ir?.toFixed(4)}</strong></div>
+                        <div>{t.icPositiveRatio}: <strong>{((r.ic_positive_ratio ?? 0) * 100).toFixed(1)}%</strong></div>
+                        <div>{t.tStat}: <strong>{r.t_stat?.toFixed(2)}</strong></div>
                       </Card>
                     </Col>
                   ))}
@@ -202,7 +204,7 @@ export default function FactorAnalysis() {
 
           {heatmapOption && (
             <Col xs={24}>
-              <Card title="Factor Correlation Matrix">
+              <Card title={t.factorCorrelationMatrix}>
                 <ReactECharts option={heatmapOption} style={{ height: 400 + (corrData?.factors?.length || 5) * 30 }} />
               </Card>
             </Col>

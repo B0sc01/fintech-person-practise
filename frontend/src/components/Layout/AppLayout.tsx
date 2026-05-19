@@ -13,30 +13,9 @@ import {
   MoonOutlined,
 } from '@ant-design/icons';
 import { useAppSettings } from '../../hooks/useAppSettings';
-import type { Locale } from '../../hooks/useAppSettings';
+import { useTranslation } from '../../locales';
 
 const { Sider, Content, Header } = Layout;
-
-const menuLabels: Record<string, { zh: string; en: string }> = {
-  '/': { zh: '仪表盘', en: 'Dashboard' },
-  '/factors': { zh: '因子库', en: 'Factor Library' },
-  '/analysis': { zh: '因子分析', en: 'Factor Analysis' },
-  '/screener': { zh: '股票筛选', en: 'Stock Screener' },
-  '/backtest': { zh: '策略回测', en: 'Backtesting' },
-  '/data': { zh: '数据中心', en: 'Data Center' },
-};
-
-function useMenuItems(locale: Locale) {
-  const isZh = locale === 'zh-CN';
-  return [
-    { key: '/', icon: <DashboardOutlined />, label: isZh ? '仪表盘' : 'Dashboard' },
-    { key: '/factors', icon: <AppstoreOutlined />, label: isZh ? '因子库' : 'Factor Library' },
-    { key: '/analysis', icon: <FundOutlined />, label: isZh ? '因子分析' : 'Factor Analysis' },
-    { key: '/screener', icon: <SearchOutlined />, label: isZh ? '股票筛选' : 'Stock Screener' },
-    { key: '/backtest', icon: <BarChartOutlined />, label: isZh ? '策略回测' : 'Backtesting' },
-    { key: '/data', icon: <DatabaseOutlined />, label: isZh ? '数据中心' : 'Data Center' },
-  ];
-}
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
@@ -44,10 +23,29 @@ export default function AppLayout() {
   const location = useLocation();
   const { token: themeToken } = theme.useToken();
   const { locale, themeMode, setLocale, toggleTheme } = useAppSettings();
+  const { t } = useTranslation();
 
   const selectedKey = '/' + location.pathname.split('/')[1];
-  const menuItems = useMenuItems(locale);
-  const currentTitle = menuLabels[selectedKey]?.[locale === 'zh-CN' ? 'zh' : 'en'] || '';
+
+  const menuLabels: Record<string, string> = {
+    '/': t.dashboard,
+    '/factors': t.factorLibrary,
+    '/analysis': t.factorAnalysis,
+    '/screener': t.stockScreener,
+    '/backtest': t.backtesting,
+    '/data': t.dataCenter,
+  };
+
+  const menuItems = [
+    { key: '/', icon: <DashboardOutlined />, label: t.dashboard },
+    { key: '/factors', icon: <AppstoreOutlined />, label: t.factorLibrary },
+    { key: '/analysis', icon: <FundOutlined />, label: t.factorAnalysis },
+    { key: '/screener', icon: <SearchOutlined />, label: t.stockScreener },
+    { key: '/backtest', icon: <BarChartOutlined />, label: t.backtesting },
+    { key: '/data', icon: <DatabaseOutlined />, label: t.dataCenter },
+  ];
+
+  const currentTitle = menuLabels[selectedKey] || '';
 
   return (
     <Layout style={{ minHeight: '100vh' }}>

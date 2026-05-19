@@ -20,7 +20,7 @@ echo "========================================="
 echo ""
 
 # Check Python dependencies
-if ! python -c "import fastapi" 2>/dev/null; then
+if ! python3 -c "import fastapi" 2>/dev/null; then
     echo "[!] Python 依赖未安装，正在安装..."
     cd "$PROJECT_DIR/backend"
     pip install -r requirements.txt
@@ -36,7 +36,7 @@ fi
 # Start backend
 echo "[1/2] 启动后端服务 (port 8000)..."
 cd "$PROJECT_DIR/backend"
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
 BACKEND_PID=$!
 sleep 2
 

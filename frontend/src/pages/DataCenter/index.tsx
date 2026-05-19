@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { dataApi } from '../../api/data';
+import { useTranslation } from '../../locales';
 
 const { RangePicker } = DatePicker;
 
@@ -20,6 +21,7 @@ export default function DataCenter() {
     dayjs(),
   ]);
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const { data: status, isLoading: loadingStatus, isError, refetch } = useQuery({
     queryKey: ['data-status'],
@@ -41,11 +43,11 @@ export default function DataCenter() {
   const downloadStockListMut = useMutation({
     mutationFn: () => dataApi.downloadStockList(),
     onSuccess: () => {
-      message.success('Stock list downloaded');
+      message.success(t.stockListDownloaded);
       queryClient.invalidateQueries({ queryKey: ['data-status'] });
     },
     onError: (err: any) => {
-      const detail = err?.response?.data?.detail || err?.message || 'Unknown error';
+      const detail = err?.response?.data?.detail || err?.message || t.unknownError;
       message.error(typeof detail === 'string' ? detail : JSON.stringify(detail));
     },
   });
@@ -62,9 +64,9 @@ export default function DataCenter() {
       const startDate = dlDateRange[0].format('YYYY-MM-DD');
       const endDate = dlDateRange[1].format('YYYY-MM-DD');
       await dataApi.downloadDaily({ start_date: startDate, end_date: endDate });
-      message.info('Daily data download started');
+      message.info(t.dailyDataDownloadStarted);
     } catch (err: any) {
-      const detail = err?.response?.data?.detail || err?.message || 'Unknown error';
+      const detail = err?.response?.data?.detail || err?.message || t.unknownError;
       message.error(typeof detail === 'string' ? detail : JSON.stringify(detail));
       setDownloading(false);
     }
@@ -84,7 +86,7 @@ export default function DataCenter() {
   if (downloading && !prog?.in_progress && prog?.total > 0) {
     // Download just finished
     if (downloading) {
-      message.success('Download completed!');
+      message.success(t.downloadCompleted);
       setDownloading(false);
       queryClient.invalidateQueries({ queryKey: ['data-status'] });
       queryClient.invalidateQueries({ queryKey: ['data-date-range'] });
@@ -92,10 +94,10 @@ export default function DataCenter() {
   }
 
   const columns = [
-    { title: 'Code', dataIndex: 'ts_code', key: 'ts_code', width: 120 },
-    { title: 'Name', dataIndex: 'name', key: 'name' },
+    { title: t.code_header, dataIndex: 'ts_code', key: 'ts_code', width: 120 },
+    { title: t.name, dataIndex: 'name', key: 'name' },
     {
-      title: 'Industry', dataIndex: 'industry', key: 'industry',
+      title: t.industry, dataIndex: 'industry', key: 'industry',
       render: (v: string) => v ? <Tag>{v}</Tag> : '-',
     },
   ];
@@ -107,11 +109,11 @@ export default function DataCenter() {
     return (
       <Result
         status="warning"
-        title="无法连接后端"
-        subTitle="数据中心需要后端 API。请先启动后端服务：cd backend && uvicorn app.main:app --port 8000"
+        title={t.cannotConnectBackendData}
+        subTitle={t.dataCenterNeedsBackend}
         extra={
           <Button type="primary" icon={<ReloadOutlined />} onClick={() => refetch()}>
-            重试
+            {t.retry}
           </Button>
         }
       />
@@ -124,7 +126,7 @@ export default function DataCenter() {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Stocks"
+              title={t.totalStocks}
               value={st.stock_count || 0}
               prefix={<DatabaseOutlined />}
             />
@@ -133,7 +135,7 @@ export default function DataCenter() {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Daily Records"
+              title={t.dailyRecords}
               value={st.daily_count || 0}
               prefix={<CalendarOutlined />}
               formatter={(v) => typeof v === 'number' ? (v / 10000).toFixed(0) + '万' : String(v)}
@@ -142,12 +144,12 @@ export default function DataCenter() {
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card>
-            <Statistic title="Date Range" value={`${st.min_date || '-'} ~ ${st.max_date || '-'}`} />
+            <Statistic title={t.dateRange} value={`${st.min_date || '-'} ~ ${st.max_date || '-'}`} />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card>
-            <Statistic title="Industries" value={st.industry_count || 0} />
+            <Statistic title={t.industries} value={st.industry_count || 0} />
           </Card>
         </Col>
       </Row>
@@ -155,19 +157,19 @@ export default function DataCenter() {
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} lg={12}>
           <Card
-            title="Data Download"
+            title={t.dataDownload}
             extra={
               <Button
                 icon={<ReloadOutlined />}
                 onClick={() => queryClient.invalidateQueries({ queryKey: ['data-status'] })}
               >
-                Refresh
+                {t.refresh}
               </Button>
             }
           >
             <Space direction="vertical" style={{ width: '100%' }} size="middle">
               <div>
-                <Typography.Text strong>Step 1: Download stock list</Typography.Text>
+                <Typography.Text strong>{t.step1DownloadStockList}</Typography.Text>
                 <br />
                 <Button
                   type="primary"
@@ -176,12 +178,12 @@ export default function DataCenter() {
                   onClick={() => downloadStockListMut.mutate()}
                   style={{ marginTop: 8 }}
                 >
-                  Download Stock List
+                  {t.downloadStockList}
                 </Button>
               </div>
 
               <div>
-                <Typography.Text strong>Step 2: Download daily data</Typography.Text>
+                <Typography.Text strong>{t.step2DownloadDailyData}</Typography.Text>
                 <br />
                 <Space style={{ marginTop: 8 }}>
                   <RangePicker
@@ -195,27 +197,27 @@ export default function DataCenter() {
                     onClick={handleDownloadDaily}
                     disabled={!st.stock_count}
                   >
-                    Download Daily Data
+                    {t.downloadDailyData}
                   </Button>
                 </Space>
               </div>
 
               {downloading && (
                 <div>
-                  <Typography.Text>Downloading... {prog.current}/{prog.total}</Typography.Text>
+                  <Typography.Text>{t.downloading} {prog.current}/{prog.total}</Typography.Text>
                   <Progress percent={downloadPercent} status="active" />
                 </div>
               )}
 
               {!downloading && prog?.total > 0 && prog?.current === prog?.total && (
                 <Tag icon={<CheckCircleOutlined />} color="success">
-                  Download Complete — {prog.total} stocks processed
+                  {t.downloadComplete.replace('{count}', String(prog.total))}
                 </Tag>
               )}
 
               <div>
                 <Typography.Text type="secondary">
-                  Available range: {dr.min_date || 'N/A'} ~ {dr.max_date || 'N/A'}
+                  {t.availableRange.replace('{min}', dr.min_date || 'N/A').replace('{max}', dr.max_date || 'N/A')}
                 </Typography.Text>
               </div>
             </Space>
@@ -223,7 +225,7 @@ export default function DataCenter() {
         </Col>
 
         <Col xs={24} lg={12}>
-          <Card title="Stock List Preview">
+          <Card title={t.stockListPreview}>
             <Table
               dataSource={stockList}
               columns={columns}

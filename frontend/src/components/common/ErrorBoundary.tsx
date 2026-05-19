@@ -1,5 +1,7 @@
 import { Component, type ReactNode } from 'react';
 import { Result, Button } from 'antd';
+import zhCN from '../../locales/zh-CN';
+import enUS from '../../locales/en-US';
 
 interface Props {
   children: ReactNode;
@@ -8,6 +10,21 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+}
+
+const translations: Record<string, typeof zhCN> = {
+  'zh-CN': zhCN,
+  'en-US': enUS,
+};
+
+function getLocale(): typeof zhCN {
+  try {
+    const stored = localStorage.getItem('fintech-locale');
+    const locale = stored ? JSON.parse(stored) : 'zh-CN';
+    return translations[locale] || zhCN;
+  } catch {
+    return zhCN;
+  }
 }
 
 export default class ErrorBoundary extends Component<Props, State> {
@@ -22,14 +39,15 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      const t = getLocale();
       return (
         <div style={{ padding: 100, textAlign: 'center' }}>
           <Result
             status="error"
-            title="页面渲染错误"
+            title={t.pageRenderError}
             subTitle={
               <div>
-                <p>前端代码发生运行时错误，请尝试刷新页面</p>
+                <p>{t.runtimeError}</p>
                 <pre style={{
                   textAlign: 'left', maxWidth: 600, margin: '16px auto',
                   padding: 16, background: '#1a1a2e', color: '#e43f5a',
@@ -44,7 +62,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             }
             extra={
               <Button type="primary" onClick={() => window.location.reload()}>
-                刷新页面
+                {t.refreshPage}
               </Button>
             }
           />
